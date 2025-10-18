@@ -1,5 +1,64 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 mb-3">Kütüphane Yönetim Sistemine Hoş Geldiniz</h1>
+        <p class="lead">Kitaplara erişim ve çalışma alanı rezervasyonu için dijital çözümünüz.</p>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card text-center">
+                <i class="fas fa-book fa-3x mb-3 text-primary"></i>
+                <h3>Kitap Kiralama</h3>
+                <p>Geniş kitap koleksiyonumuza göz atın ve online kiralama yapın.</p>
+                <a asp-controller="Books" asp-action="Index" class="btn btn-primary">Kitapları Görüntüle</a>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card text-center">
+                <i class="fas fa-chair fa-3x mb-3 text-primary"></i>
+                <h3>Oturma Yeri Rezervasyonu</h3>
+                <p>Çalışma alanlarımızdan size uygun olanı seçin ve rezerve edin.</p>
+                <a asp-controller="Seats" asp-action="Index" class="btn btn-primary">Yer Ayırt</a>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card text-center">
+                <i class="fas fa-user-circle fa-3x mb-3 text-primary"></i>
+                <h3>Üyelik İşlemleri</h3>
+                <p>Hesabınızı yönetin ve geçmiş işlemlerinizi görüntüleyin.</p>
+                <a asp-controller="Account" asp-action="Profile" class="btn btn-primary">Profili Görüntüle</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="row text-center mt-5">
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card">
+                <h2 class="display-4 text-primary">5000+</h2>
+                <p class="lead">Kitap</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card">
+                <h2 class="display-4 text-primary">100+</h2>
+                <p class="lead">Çalışma Alanı</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card">
+                <h2 class="display-4 text-primary">1000+</h2>
+                <p class="lead">Aktif Üye</p>
+            </div>
+        </div>
+    </div>
+</div>ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">

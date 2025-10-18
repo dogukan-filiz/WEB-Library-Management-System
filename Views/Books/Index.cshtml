@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "Kitaplar";
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Kitap Kataloğu</h1>
+        <div class="d-flex">
+            <input type="search" class="form-control me-2" placeholder="Kitap ara...">
+            <button class="btn btn-primary">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="book-list">
+        <!-- Örnek Kitap Kartları -->
+        @for (int i = 1; i <= 8; i++)
+        {
+            <div class="book-card">
+                <img src="https://via.placeholder.com/200x300" alt="Kitap Kapağı">
+                <div class="p-3">
+                    <h5>Örnek Kitap @i</h5>
+                    <p class="text-muted">Yazar Adı</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-success">Müsait</span>
+                        <button class="btn btn-primary btn-sm">
+                            <i class="fas fa-book-reader me-1"></i>Kirala
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Sayfalama -->
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1">Önceki</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#">Sonraki</a>
+            </li>
+        </ul>
+    </nav>
+</div>

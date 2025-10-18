@@ -95,3 +95,4 @@
 /Users/dogukanfiliz/Documents/GitHub/WEB-Library-Management-System/obj/Debug/net9.0/WEB-Library-Management-System.pdb
 /Users/dogukanfiliz/Documents/GitHub/WEB-Library-Management-System/obj/Debug/net9.0/WEB-Library-Management-System.genruntimeconfig.cache
 /Users/dogukanfiliz/Documents/GitHub/WEB-Library-Management-System/obj/Debug/net9.0/ref/WEB-Library-Management-System.dll
+/Users/dogukanfiliz/Documents/GitHub/WEB-Library-Management-System/obj/Debug/net9.0/compressed/whunzk2sqt-5a0f27h7gh.gz

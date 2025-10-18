@@ -1,0 +1,70 @@
+@{
+    ViewData["Title"] = "Oturma Yerleri";
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Oturma Yeri Rezervasyonu</h1>
+        <div class="d-flex align-items-center">
+            <div class="me-4">
+                <span class="badge bg-success me-2"></span> Müsait
+                <span class="badge bg-danger ms-3 me-2"></span> Dolu
+            </div>
+            <input type="date" class="form-control" id="reservationDate">
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title mb-4">Kütüphane Oturma Planı</h5>
+            
+            <div class="seat-grid">
+                @for (int i = 1; i <= 32; i++)
+                {
+                    <div class="seat @(new Random().Next(2) == 0 ? "available" : "occupied")" 
+                         data-seat-id="@i" 
+                         title="Koltuk @i">
+                    </div>
+                }
+            </div>
+
+            <div class="mt-4">
+                <h6>Seçilen Yer: <span id="selectedSeat">-</span></h6>
+                <button class="btn btn-primary" disabled id="reserveButton">
+                    <i class="fas fa-check me-1"></i>Rezerve Et
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aktif Rezervasyonlar -->
+    <div class="mt-5">
+        <h3>Aktif Rezervasyonlarım</h3>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Koltuk No</th>
+                        <th>Tarih</th>
+                        <th>Saat</th>
+                        <th>Durum</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>15</td>
+                        <td>18.10.2025</td>
+                        <td>09:00 - 17:00</td>
+                        <td><span class="badge bg-success">Aktif</span></td>
+                        <td>
+                            <button class="btn btn-danger btn-sm">
+                                <i class="fas fa-times me-1"></i>İptal
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
