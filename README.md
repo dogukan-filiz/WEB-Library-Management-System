@@ -489,7 +489,7 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosy
 ## 📞 İletişim
 
 Sorularınız veya önerileriniz için:
-- **Email**: dogukan@example.com
+- **Email**: dogukanfiliz@hotmail.com
 - **GitHub Issues**: [Yeni Issue Aç](https://github.com/dogukan-filiz/WEB-Library-Management-System/issues)
 
 ---
