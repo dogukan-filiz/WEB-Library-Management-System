@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="height: 100%;">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="~/css/custom.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
-<body>
+<body style="min-height: 100%; display: flex; flex-direction: column;">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm box-shadow mb-3">
             <div class="container-fluid">
@@ -43,25 +43,46 @@
                                 <i class="fas fa-user me-1"></i>Profilim
                             </a>
                         </li>
+                        @if (Context.Session.GetString("UserRole") == "Admin")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-warning" asp-controller="Admin" asp-action="Index">
+                                    <i class="fas fa-user-shield me-1"></i>Admin Paneli
+                                </a>
+                            </li>
+                        }
                     </ul>
-                    <div class="d-flex">
-                        <a class="btn btn-outline-light me-2" asp-controller="Account" asp-action="Login">
-                            <i class="fas fa-sign-in-alt me-1"></i>Giriş Yap
-                        </a>
+                    <div class="d-flex align-items-center">
+                        @if (Context.Session.GetString("UserName") != null)
+                        {
+                            <span class="text-white me-3">
+                                <i class="fas fa-user-circle me-1"></i>@Context.Session.GetString("UserName")
+                            </span>
+                            <a class="btn btn-outline-light" asp-controller="Account" asp-action="Logout">
+                                <i class="fas fa-sign-out-alt me-1"></i>Çıkış
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="btn btn-outline-light" asp-controller="Account" asp-action="Login">
+                                <i class="fas fa-sign-in-alt me-1"></i>Giriş Yap
+                            </a>
+                        }
                     </div>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
+    <div class="container" style="flex: 1;">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - WEB_Library_Management_System - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="footer mt-auto">
+        <div class="container text-center">
+            <p class="mb-1">&copy; 2025 Kütüphane Yönetim Sistemi - Tüm Hakları Saklıdır</p>
+            <p class="mb-0"><small>Doğukan Filiz - Bilgisayar Mühendisliği</small></p>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

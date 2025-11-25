@@ -3,68 +3,406 @@
 }
 
 <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="mb-4">
         <h1>Oturma Yeri Rezervasyonu</h1>
-        <div class="d-flex align-items-center">
-            <div class="me-4">
-                <span class="badge bg-success me-2"></span> Müsait
-                <span class="badge bg-danger ms-3 me-2"></span> Dolu
-            </div>
-            <input type="date" class="form-control" id="reservationDate">
-        </div>
     </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title mb-4">Kütüphane Oturma Planı</h5>
-            
-            <div class="seat-grid">
-                @for (int i = 1; i <= 32; i++)
-                {
-                    <div class="seat @(new Random().Next(2) == 0 ? "available" : "occupied")" 
-                         data-seat-id="@i" 
-                         title="Koltuk @i">
-                    </div>
-                }
-            </div>
+    <div id="loadingSpinner" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+        <p class="mt-2">Oturma yerleri yükleniyor...</p>
+    </div>
 
-            <div class="mt-4">
-                <h6>Seçilen Yer: <span id="selectedSeat">-</span></h6>
-                <button class="btn btn-primary" disabled id="reserveButton">
-                    <i class="fas fa-check me-1"></i>Rezerve Et
+    <div id="errorMessage" class="alert alert-danger d-none"></div>
+
+    <div id="seatsContainer" class="d-none">
+        <!-- Kat Seçimi Accordion -->
+        <div class="accordion mb-4" id="floorsAccordion"></div>
+
+        <!-- Rezervasyon Formu -->
+        <div class="mt-4" id="reservationForm" style="display: none;">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-check me-2"></i>Rezervasyon Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Seçilen Yer:</strong> <span id="selectedSeatInfo"></span>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Tarih</label>
+                            <input type="date" class="form-control" id="reservationDate" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Başlangıç Saati</label>
+                            <input type="time" class="form-control" id="startTime" value="09:00" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Bitiş Saati</label>
+                            <input type="time" class="form-control" id="endTime" value="17:00" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button class="btn btn-primary w-100" id="reserveButton">
+                                <i class="fas fa-check me-1"></i>Rezerve Et
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kullanıcı Rezervasyonları -->
+        <div class="mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>Rezervasyonlarım</h3>
+                <button class="btn btn-danger" id="deleteOldButton" onclick="deleteOldReservations()" title="Geçmiş rezervasyon kayıtlarını sil">
+                    <i class="fas fa-trash me-1"></i>Geçmiş Kayıtları Temizle
                 </button>
             </div>
-        </div>
-    </div>
-
-    <!-- Aktif Rezervasyonlar -->
-    <div class="mt-5">
-        <h3>Aktif Rezervasyonlarım</h3>
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Koltuk No</th>
-                        <th>Tarih</th>
-                        <th>Saat</th>
-                        <th>Durum</th>
-                        <th>İşlem</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>15</td>
-                        <td>18.10.2025</td>
-                        <td>09:00 - 17:00</td>
-                        <td><span class="badge bg-success">Aktif</span></td>
-                        <td>
-                            <button class="btn btn-danger btn-sm">
-                                <i class="fas fa-times me-1"></i>İptal
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table" id="reservationsTable">
+                    <thead>
+                        <tr>
+                            <th>Koltuk No</th>
+                            <th>Kat</th>
+                            <th>Tarih</th>
+                            <th>Başlangıç</th>
+                            <th>Bitiş</th>
+                            <th>Durum</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reservationsBody">
+                        <tr>
+                            <td colspan="7" class="text-center">Rezervasyon bulunamadı.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    let seats = [];
+    let selectedSeatId = null;
+    const userId = @(Context.Session.GetInt32("UserId") ?? 0);
+
+    async function loadSeats() {
+        try {
+            const response = await fetch('/api/SeatsApi');
+            if (!response.ok) throw new Error('Oturma yerleri yüklenemedi');
+            
+            seats = await response.json();
+            displaySeatsAccordion();
+            
+            if (userId > 0) {
+                await loadUserReservations();
+            }
+            
+            document.getElementById('loadingSpinner').classList.add('d-none');
+            document.getElementById('seatsContainer').classList.remove('d-none');
+        } catch (error) {
+            document.getElementById('loadingSpinner').classList.add('d-none');
+            document.getElementById('errorMessage').textContent = 'Hata: ' + error.message;
+            document.getElementById('errorMessage').classList.remove('d-none');
+        }
+    }
+
+    function displaySeatsAccordion() {
+        const container = document.getElementById('floorsAccordion');
+        
+        // Kata göre grupla
+        const floors = {};
+        seats.forEach(seat => {
+            if (!floors[seat.floor]) floors[seat.floor] = [];
+            floors[seat.floor].push(seat);
+        });
+
+        let html = '';
+        Object.keys(floors).sort().forEach((floor, index) => {
+            const floorSeats = floors[floor];
+            const section = floorSeats[0].section || '';
+            const availableCount = floorSeats.filter(s => s.isAvailable).length;
+            const totalCount = floorSeats.length;
+            
+            html += `
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading${floor}">
+                        <button class="accordion-button ${index !== 0 ? 'collapsed' : ''}" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#collapse${floor}" 
+                                aria-expanded="${index === 0 ? 'true' : 'false'}" aria-controls="collapse${floor}">
+                            <div class="d-flex justify-content-between w-100 pe-3">
+                                <span><i class="fas fa-layer-group me-2"></i><strong>${floor}. Kat</strong> - ${section} Bölümü</span>
+                                <span class="badge bg-success">${availableCount}/${totalCount} Müsait</span>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapse${floor}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" 
+                         aria-labelledby="heading${floor}" data-bs-parent="#floorsAccordion">
+                        <div class="accordion-body">
+                            <div class="seat-grid">`;
+            
+            floorSeats.forEach(seat => {
+                const availClass = seat.isAvailable ? 'available' : 'occupied';
+                const clickable = seat.isAvailable && userId > 0 ? 
+                    `onclick="selectSeat(${seat.id}, '${seat.seatNumber}', ${seat.floor})"` : '';
+                html += `<div class="seat ${availClass}" ${clickable} data-seat-id="${seat.id}" 
+                         title="${seat.isAvailable ? 'Koltuk ' + seat.seatNumber + ' - Müsait' : 'Koltuk ' + seat.seatNumber + ' - Dolu'}">
+                    ${seat.seatNumber}
+                </div>`;
+            });
+            
+            html += `</div></div></div></div>`;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function selectSeat(seatId, seatNumber, floor) {
+        if (userId === 0) {
+            alert('Rezervasyon yapmak için giriş yapmalısınız.');
+            window.location.href = '/Account/Login';
+            return;
+        }
+
+        // Önceki seçimi kaldır
+        document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
+        
+        // Yeni seçimi işaretle
+        document.querySelector(`[data-seat-id="${seatId}"]`).classList.add('selected');
+        
+        selectedSeatId = seatId;
+        document.getElementById('selectedSeatInfo').textContent = `${seatNumber} (${floor}. Kat)`;
+        document.getElementById('reservationForm').style.display = 'block';
+        
+        // Bugünün tarihini varsayılan olarak ayarla
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('reservationDate').value = today;
+        document.getElementById('reservationDate').min = today;
+
+        // Rezervasyon formuna smooth scroll
+        setTimeout(() => {
+            document.getElementById('reservationForm').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+        }, 300);
+    }
+
+    async function reserveSeat() {
+        if (!selectedSeatId || userId === 0) return;
+
+        const date = document.getElementById('reservationDate').value;
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
+
+        if (!date || !startTime || !endTime) {
+            alert('Lütfen tüm alanları doldurun.');
+            return;
+        }
+
+        // Tarih ve saatleri DateTime formatına çevir
+        const startDateTime = `${date}T${startTime}:00`;
+        const endDateTime = `${date}T${endTime}:00`;
+
+        try {
+            const response = await fetch('/api/SeatsApi/reserve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: userId,
+                    seatId: selectedSeatId,
+                    date: date,
+                    startTime: startDateTime,
+                    endTime: endDateTime
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(data.message);
+                selectedSeatId = null;
+                document.getElementById('reservationForm').style.display = 'none';
+                await loadSeats(); // Sayfayı yenile
+            } else {
+                alert('Hata: ' + data.message);
+            }
+        } catch (error) {
+            alert('Rezervasyon yapılırken bir hata oluştu: ' + error.message);
+        }
+    }
+
+    async function loadUserReservations() {
+        if (userId === 0) return;
+
+        try {
+            const response = await fetch(`/api/SeatsApi/user/${userId}`);
+            const reservations = await response.json();
+
+            const tbody = document.getElementById('reservationsBody');
+            if (reservations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Henüz rezervasyonunuz bulunmamaktadır.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = reservations.map(r => {
+                const statusBadge = r.status === 'Active' ? 'bg-success' : r.status === 'Cancelled' ? 'bg-danger' : 'bg-secondary';
+                const statusText = r.status === 'Active' ? 'Aktif' : r.status === 'Cancelled' ? 'İptal' : 'Tamamlandı';
+                const cancelBtn = r.status === 'Active' ? 
+                    `<button class="btn btn-danger btn-sm" onclick="cancelReservation(${r.id})">
+                        <i class="fas fa-times me-1"></i>İptal
+                    </button>` : '-';
+
+                // Tarihleri daha okunabilir formatta göster
+                const startDate = new Date(r.startTime);
+                const endDate = new Date(r.endTime);
+                const dateStr = startDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const startTimeStr = startDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                const endTimeStr = endDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+                return `<tr>
+                    <td>${r.seatNumber}</td>
+                    <td>${r.floor}. Kat</td>
+                    <td><strong>${dateStr}</strong></td>
+                    <td><span class="badge bg-info">${startTimeStr}</span></td>
+                    <td><span class="badge bg-warning">${endTimeStr}</span></td>
+                    <td><span class="badge ${statusBadge}">${statusText}</span></td>
+                    <td>${cancelBtn}</td>
+                </tr>`;
+            }).join('');
+        } catch (error) {
+            console.error('Rezervasyonlar yüklenemedi:', error);
+        }
+    }
+
+    async function cancelReservation(reservationId) {
+        if (!confirm('Rezervasyonu iptal etmek istediğinizden emin misiniz?')) return;
+
+        try {
+            const response = await fetch('/api/SeatsApi/cancel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reservationId: reservationId })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(data.message);
+                await loadSeats();
+            } else {
+                alert('Hata: ' + data.message);
+            }
+        } catch (error) {
+            alert('İptal işlemi sırasında bir hata oluştu: ' + error.message);
+        }
+    }
+
+    async function deleteOldReservations() {
+        if (userId === 0) {
+            alert('Bu işlem için giriş yapmalısınız.');
+            return;
+        }
+
+        if (!confirm('Tamamlanmış ve iptal edilmiş tüm rezervasyon kayıtlarınızı silmek istediğinizden emin misiniz?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/SeatsApi/delete-old', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userId })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(data.message);
+                await loadUserReservations(); // Sadece rezervasyon listesini yenile
+            } else {
+                alert('Hata: ' + data.message);
+            }
+        } catch (error) {
+            alert('Silme işlemi sırasında bir hata oluştu: ' + error.message);
+        }
+    }
+
+    document.getElementById('reserveButton').addEventListener('click', reserveSeat);
+
+    // Sayfa yüklendiğinde oturma yerlerini getir
+    loadSeats();
+</script>
+
+<style>
+    .accordion-button {
+        font-size: 1.1rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: #0d6efd;
+        color: white;
+    }
+
+    .accordion-button:not(.collapsed)::after {
+        filter: brightness(0) invert(1);
+    }
+
+    .accordion-body {
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+    }
+
+    .seat-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+        max-width: 100%;
+    }
+
+    .seat {
+        aspect-ratio: 1;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+    }
+
+    .seat.available {
+        background-color: #d4edda;
+        border-color: #28a745;
+        cursor: pointer;
+    }
+
+    .seat.available:hover {
+        background-color: #28a745;
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .seat.occupied {
+        background-color: #f8d7da;
+        border-color: #dc3545;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .seat.selected {
+        background-color: #007bff;
+        border-color: #0056b3;
+        color: white;
+        transform: scale(1.15);
+    }
+</style>

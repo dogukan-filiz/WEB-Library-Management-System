@@ -1,0 +1,367 @@
+@model WEB_Library_Management_System.Models.User
+
+@{
+    ViewData["Title"] = "Profilim";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <!-- Kullanıcı Bilgileri -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Kullanıcı Bilgileri</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-user-circle fa-5x text-primary"></i>
+                    </div>
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>Ad Soyad:</strong></td>
+                            <td>@Model.FirstName @Model.LastName</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email:</strong></td>
+                            <td>@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Telefon:</strong></td>
+                            <td>@(Model.PhoneNumber ?? "Belirtilmemiş")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Rol:</strong></td>
+                            <td>
+                                @if (Model.Role == "Admin")
+                                {
+                                    <span class="badge bg-danger">Yönetici</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info">Öğrenci</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Üyelik:</strong></td>
+                            <td>@Model.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        </tr>
+                    </table>
+                    <a asp-action="Logout" class="btn btn-danger w-100">
+                        <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kitap Kiralamaları -->
+        <div class="col-md-8 mb-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-book"></i> Kitap Kiralama Geçmişi</h5>
+                    @if (Model.BookRentals != null && Model.BookRentals.Any(r => r.Status == "Returned"))
+                    {
+                        <button class="btn btn-danger btn-sm" onclick="clearBookHistory()">
+                            <i class="fas fa-trash"></i> Geçmişi Temizle
+                        </button>
+                    }
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.BookRentals != null && Model.BookRentals.Any())
+                    {
+                        <div style="max-height: 450px; overflow-y: auto;">
+                            <table class="table table-hover mb-0">
+                                <thead style="position: sticky; top: 0; background-color: white; z-index: 10; box-shadow: 0 2px 2px rgba(0,0,0,0.1);">
+                                    <tr>
+                                        <th>Kitap</th>
+                                        <th>Kiralama Tarihi</th>
+                                        <th>İade Tarihi</th>
+                                        <th>Durum</th>
+                                        <th>İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var rental in Model.BookRentals.OrderByDescending(r => r.RentalDate))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@rental.Book?.Title</strong><br>
+                                                <small class="text-muted">@rental.Book?.Author</small>
+                                            </td>
+                                            <td>@rental.RentalDate.ToString("dd.MM.yyyy")</td>
+                                            <td>
+                                                @if (rental.ReturnDate.HasValue)
+                                                {
+                                                    @rental.ReturnDate.Value.ToString("dd.MM.yyyy")
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark">@rental.DueDate.ToString("dd.MM.yyyy")</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @switch (rental.Status)
+                                                {
+                                                    case "Active":
+                                                        <span class="badge bg-success">Aktif</span>
+                                                        break;
+                                                    case "Returned":
+                                                        <span class="badge bg-secondary">İade Edildi</span>
+                                                        break;
+                                                    case "Overdue":
+                                                        <span class="badge bg-danger">Gecikmiş</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-info">@rental.Status</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (rental.Status == "Active")
+                                                {
+                                                    <button class="btn btn-success btn-sm" onclick="returnBook(@rental.Id)">
+                                                        <i class="fas fa-undo me-1"></i>İade Et
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Henüz kitap kiralama geçmişiniz bulunmamaktadır.</p>
+                            <a asp-controller="Books" asp-action="Index" class="btn btn-primary">
+                                Kitaplara Göz At
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Oturma Yeri Rezervasyonları -->
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-chair"></i> Oturma Yeri Rezervasyonları</h5>
+                    @if (Model.SeatReservations != null && Model.SeatReservations.Any(r => r.Status == "Completed" || r.Status == "Cancelled"))
+                    {
+                        <button class="btn btn-danger btn-sm" onclick="clearSeatHistory()">
+                            <i class="fas fa-trash"></i> Geçmişi Temizle
+                        </button>
+                    }
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.SeatReservations != null && Model.SeatReservations.Any())
+                    {
+                        <div style="max-height: 450px; overflow-y: auto;">
+                            <table class="table table-hover mb-0">
+                                <thead style="position: sticky; top: 0; background-color: white; z-index: 10; box-shadow: 0 2px 2px rgba(0,0,0,0.1);">
+                                    <tr>
+                                        <th>Oturma Yeri</th>
+                                        <th>Kat</th>
+                                        <th>Tarih</th>
+                                        <th>Başlangıç</th>
+                                        <th>Bitiş</th>
+                                        <th>Durum</th>
+                                        <th>İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var reservation in Model.SeatReservations.OrderByDescending(r => r.ReservationDate))
+                                    {
+                                        var startDate = reservation.StartTime;
+                                        var endDate = reservation.EndTime;
+                                        <tr>
+                                            <td><strong>@reservation.Seat?.SeatNumber</strong></td>
+                                            <td>@reservation.Seat?.Floor. Kat</td>
+                                            <td>@startDate.ToString("dd.MM.yyyy")</td>
+                                            <td><span class="badge bg-info">@startDate.ToString("HH:mm")</span></td>
+                                            <td><span class="badge bg-warning">@endDate.ToString("HH:mm")</span></td>
+                                            <td>
+                                                @switch (reservation.Status)
+                                                {
+                                                    case "Active":
+                                                        <span class="badge bg-success">Aktif</span>
+                                                        break;
+                                                    case "Completed":
+                                                        <span class="badge bg-secondary">Tamamlandı</span>
+                                                        break;
+                                                    case "Cancelled":
+                                                        <span class="badge bg-danger">İptal Edildi</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-info">@reservation.Status</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (reservation.Status == "Active")
+                                                {
+                                                    <button class="btn btn-danger btn-sm" onclick="cancelReservation(@reservation.Id)">
+                                                        <i class="fas fa-times"></i> İptal
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Henüz oturma yeri rezervasyonunuz bulunmamaktadır.</p>
+                            <a asp-controller="Seats" asp-action="Index" class="btn btn-primary">
+                                Rezervasyon Yap
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const userId = @Model.Id;
+
+        // Kitap iade etme
+        async function returnBook(rentalId) {
+            if (!confirm('Bu kitabı iade etmek istediğinizden emin misiniz?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/BooksApi/return', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        rentalId: rentalId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Kitap başarıyla iade edildi!');
+                    location.reload();
+                } else {
+                    alert('Hata: ' + (result.message || 'Kitap iade edilemedi'));
+                }
+            } catch (error) {
+                console.error('Hata:', error);
+                alert('Kitap iade sırasında bir hata oluştu.');
+            }
+        }
+
+        // Rezervasyon iptal etme
+        async function cancelReservation(reservationId) {
+            if (!confirm('Bu rezervasyonu iptal etmek istediğinizden emin misiniz?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/SeatsApi/cancel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        reservationId: reservationId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Rezervasyon başarıyla iptal edildi!');
+                    location.reload();
+                } else {
+                    alert('Hata: ' + (result.message || 'Rezervasyon iptal edilemedi'));
+                }
+            } catch (error) {
+                console.error('Hata:', error);
+                alert('Rezervasyon iptal sırasında bir hata oluştu.');
+            }
+        }
+
+        // Kitap geçmişini temizle
+        async function clearBookHistory() {
+            if (!confirm('İade edilmiş tüm kitap kiralama kayıtlarınızı silmek istediğinizden emin misiniz?\n\nAktif kiralamalar korunacaktır.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/BooksApi/clear-history', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: userId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert('Hata: ' + (result.message || 'Geçmiş temizlenemedi'));
+                }
+            } catch (error) {
+                console.error('Hata:', error);
+                alert('Geçmiş temizleme sırasında bir hata oluştu.');
+            }
+        }
+
+        // Oturma yeri geçmişini temizle
+        async function clearSeatHistory() {
+            if (!confirm('Tamamlanmış ve iptal edilmiş tüm rezervasyon kayıtlarınızı silmek istediğinizden emin misiniz?\n\nAktif rezervasyonlar korunacaktır.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/SeatsApi/delete-old', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: userId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert('Hata: ' + (result.message || 'Geçmiş temizlenemedi'));
+                }
+            } catch (error) {
+                console.error('Hata:', error);
+                alert('Geçmiş temizleme sırasında bir hata oluştu.');
+            }
+        }
+    </script>
+}

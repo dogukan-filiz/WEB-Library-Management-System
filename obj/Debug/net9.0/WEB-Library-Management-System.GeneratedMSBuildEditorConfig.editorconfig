@@ -1,11 +1,19 @@
 is_global = true
 build_property.TargetFramework = net9.0
+build_property.TargetFramework = net9.0
+build_property.TargetPlatformMinVersion = 
 build_property.TargetPlatformMinVersion = 
 build_property.UsingMicrosoftNETSdkWeb = true
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
 build_property.ProjectTypeGuids = 
 build_property.InvariantGlobalization = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
 build_property.PlatformNeutralAssembly = 
 build_property.EnforceExtendedAnalyzerRules = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = WEB_Library_Management_System
 build_property.RootNamespace = WEB_Library_Management_System
@@ -22,6 +30,30 @@ build_property.EnableCodeStyleSeverity =
 
 [/Users/dogukanfiliz/Documents/GitHub/WEB-Library-Management-System/Views/Account/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9Mb2dpbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/dogukanfiliz/Documents/GitHub/WEB-Library-Management-System/Views/Account/Profile.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9Qcm9maWxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/dogukanfiliz/Documents/GitHub/WEB-Library-Management-System/Views/Admin/Books.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vQm9va3MuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/dogukanfiliz/Documents/GitHub/WEB-Library-Management-System/Views/Admin/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/dogukanfiliz/Documents/GitHub/WEB-Library-Management-System/Views/Admin/Rentals.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vUmVudGFscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/dogukanfiliz/Documents/GitHub/WEB-Library-Management-System/Views/Admin/Reservations.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vUmVzZXJ2YXRpb25zLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/dogukanfiliz/Documents/GitHub/WEB-Library-Management-System/Views/Admin/Users.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vVXNlcnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/dogukanfiliz/Documents/GitHub/WEB-Library-Management-System/Views/Books/Index.cshtml]

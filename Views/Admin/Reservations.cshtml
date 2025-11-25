@@ -1,0 +1,192 @@
+@model IEnumerable<WEB_Library_Management_System.Models.SeatReservation>
+
+@{
+    ViewData["Title"] = "Rezervasyon Yönetimi";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-chair"></i> Rezervasyon Yönetimi</h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Geri Dön
+        </a>
+    </div>
+
+    <!-- Filtre -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">Durum</label>
+                    <select class="form-select" id="statusFilter" onchange="filterReservations()">
+                        <option value="">Tümü</option>
+                        <option value="Active">Aktif</option>
+                        <option value="Completed">Tamamlandı</option>
+                        <option value="Cancelled">İptal Edildi</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Kat</label>
+                    <select class="form-select" id="floorFilter" onchange="filterReservations()">
+                        <option value="">Tümü</option>
+                        <option value="1">1. Kat</option>
+                        <option value="2">2. Kat</option>
+                        <option value="3">3. Kat</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Tarih</label>
+                    <input type="date" class="form-control" id="dateFilter" onchange="filterReservations()">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-secondary w-100" onclick="clearFilters()">
+                        <i class="fas fa-redo"></i> Filtreleri Temizle
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="reservationsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Kullanıcı</th>
+                            <th>Koltuk</th>
+                            <th>Kat</th>
+                            <th>Rezervasyon Tarihi</th>
+                            <th>Başlangıç</th>
+                            <th>Bitiş</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var reservation in Model)
+                        {
+                            <tr data-status="@reservation.Status" data-floor="@reservation.Seat?.Floor" data-date="@reservation.ReservationDate.ToString("yyyy-MM-dd")">
+                                <td>@reservation.Id</td>
+                                <td>
+                                    @reservation.User?.FirstName @reservation.User?.LastName<br>
+                                    <small class="text-muted">@reservation.User?.Email</small>
+                                </td>
+                                <td>
+                                    <strong>Koltuk @reservation.Seat?.SeatNumber</strong>
+                                </td>
+                                <td>@reservation.Seat?.Floor. Kat</td>
+                                <td>@reservation.ReservationDate.ToString("dd.MM.yyyy")</td>
+                                <td>@reservation.StartTime.ToString(@"hh\:mm")</td>
+                                <td>@reservation.EndTime.ToString(@"hh\:mm")</td>
+                                <td>
+                                    @switch (reservation.Status)
+                                    {
+                                        case "Active":
+                                            <span class="badge bg-success">Aktif</span>
+                                            break;
+                                        case "Completed":
+                                            <span class="badge bg-secondary">Tamamlandı</span>
+                                            break;
+                                        case "Cancelled":
+                                            <span class="badge bg-danger">İptal</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-info">@reservation.Status</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    @if (reservation.Status == "Active")
+                                    {
+                                        <button class="btn btn-sm btn-danger" onclick="cancelReservation(@reservation.Id)" title="İptal Et">
+                                            <i class="fas fa-times"></i> İptal
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-secondary" disabled>
+                                            <i class="fas fa-check"></i> Tamamlandı
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterReservations() {
+            const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+            const floorFilter = document.getElementById('floorFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+
+            const rows = document.querySelectorAll('#reservationsTable tbody tr');
+
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status').toLowerCase();
+                const floor = row.getAttribute('data-floor');
+                const date = row.getAttribute('data-date');
+
+                let showRow = true;
+
+                if (statusFilter && !status.includes(statusFilter)) {
+                    showRow = false;
+                }
+
+                if (floorFilter && floor !== floorFilter) {
+                    showRow = false;
+                }
+
+                if (dateFilter && date !== dateFilter) {
+                    showRow = false;
+                }
+
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('floorFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            filterReservations();
+        }
+
+        async function cancelReservation(reservationId) {
+            if (!confirm('Bu rezervasyonu iptal etmek istediğinizden emin misiniz?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/SeatsApi/cancel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        reservationId: reservationId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Rezervasyon başarıyla iptal edildi!');
+                    location.reload();
+                } else {
+                    alert('Hata: ' + (result.message || 'Rezervasyon iptal edilemedi'));
+                }
+            } catch (error) {
+                console.error('Hata:', error);
+                alert('Rezervasyon iptal edilirken bir hata oluştu.');
+            }
+        }
+    </script>
+}

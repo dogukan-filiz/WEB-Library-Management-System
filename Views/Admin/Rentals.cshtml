@@ -1,0 +1,137 @@
+@model IEnumerable<WEB_Library_Management_System.Models.BookRental>
+
+@{
+    ViewData["Title"] = "Kiralama Yönetimi";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-exchange-alt"></i> Kiralama Yönetimi</h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Geri Dön
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Kullanıcı</th>
+                            <th>Kitap</th>
+                            <th>Kiralama Tarihi</th>
+                            <th>İade Tarihi</th>
+                            <th>Gerçek İade</th>
+                            <th>Durum</th>
+                            <th>Ceza</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var rental in Model)
+                        {
+                            <tr>
+                                <td>@rental.Id</td>
+                                <td>
+                                    @rental.User?.FirstName @rental.User?.LastName<br>
+                                    <small class="text-muted">@rental.User?.Email</small>
+                                </td>
+                                <td>
+                                    <strong>@rental.Book?.Title</strong><br>
+                                    <small class="text-muted">@rental.Book?.Author</small>
+                                </td>
+                                <td>@rental.RentalDate.ToString("dd.MM.yyyy")</td>
+                                <td>@rental.DueDate.ToString("dd.MM.yyyy")</td>
+                                <td>
+                                    @if (rental.ReturnDate.HasValue)
+                                    {
+                                        @rental.ReturnDate.Value.ToString("dd.MM.yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @switch (rental.Status)
+                                    {
+                                        case "Active":
+                                            <span class="badge bg-success">Aktif</span>
+                                            break;
+                                        case "Returned":
+                                            <span class="badge bg-secondary">İade Edildi</span>
+                                            break;
+                                        case "Overdue":
+                                            <span class="badge bg-danger">Gecikmiş</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-info">@rental.Status</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    @if (rental.Fine.HasValue && rental.Fine > 0)
+                                    {
+                                        <span class="text-danger">₺@rental.Fine.Value</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (rental.Status == "Active")
+                                    {
+                                        <button class="btn btn-sm btn-success" onclick="returnBook(@rental.Id)" title="İade Al">
+                                            <i class="fas fa-undo"></i> İade Al
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function returnBook(rentalId) {
+            if (!confirm('Bu kitabın iadesini almak istediğinizden emin misiniz?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/BooksApi/return', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        rentalId: rentalId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Kitap iadesi başarıyla alındı!');
+                    location.reload();
+                } else {
+                    alert('Hata: ' + (result.message || 'İade işlemi başarısız oldu'));
+                }
+            } catch (error) {
+                console.error('Hata:', error);
+                alert('İade işlemi sırasında bir hata oluştu.');
+            }
+        }
+    </script>
+}

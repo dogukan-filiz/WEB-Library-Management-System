@@ -41,27 +41,21 @@
     <div class="row text-center mt-5">
         <div class="col-md-4 mb-4">
             <div class="dashboard-card">
-                <h2 class="display-4 text-primary">5000+</h2>
+                <h2 class="display-4 text-primary">@ViewBag.TotalBooks</h2>
                 <p class="lead">Kitap</p>
             </div>
         </div>
         <div class="col-md-4 mb-4">
             <div class="dashboard-card">
-                <h2 class="display-4 text-primary">100+</h2>
+                <h2 class="display-4 text-primary">@ViewBag.TotalSeats</h2>
                 <p class="lead">Çalışma Alanı</p>
             </div>
         </div>
         <div class="col-md-4 mb-4">
             <div class="dashboard-card">
-                <h2 class="display-4 text-primary">1000+</h2>
-                <p class="lead">Aktif Üye</p>
+                <h2 class="display-4 text-primary">@ViewBag.TotalUsers</h2>
+                <p class="lead">Kayıtlı Üye</p>
             </div>
         </div>
     </div>
-</div>ViewData["Title"] = "Home Page";
-}
-
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
